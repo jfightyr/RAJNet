@@ -10,14 +10,6 @@ proposed to solve this problem. However, most of the existing diagnostic models 
 
 See [INSTALL.md](INSTALL.md) for the installation of dependencies required to run RAJNet.
 
-## Training and Testing
-
-Training and Testing instructions for RAJNet. Here is a summary table containing hyperlinks for easy navigation.
-
-| Training Navigation                   | Testing Navigation                  |
-| ------------------------------------- | ----------------------------------- |
-| [TrainNavigation](TrainNavigation.md) | [TestNavigation](TestNavigation.md) |
-
 
 ## Contact
 
