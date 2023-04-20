@@ -1,11 +1,11 @@
-from functools import partial#model找问题，要经常打断点，找到变化比较异常的点进行模型改进#画出来模型的连接图
+from functools import partial
 import math
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-def get_inplanes():#输入通道
+def get_inplanes(): 
     return [64, 128, 256, 512]
 
 
@@ -31,14 +31,14 @@ class ChannelAttention(nn.Module):
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
         self.max_pool = nn.AdaptiveMaxPool3d(1)
 
-        self.fc1 = nn.Conv3d(inplanes,inplanes//16,1,bias=False) # 本来是2的改成3了
+        self.fc1 = nn.Conv3d(inplanes,inplanes//16,1,bias=False)
         self.relu1=nn.ReLU()
         self.fc2=nn.Conv3d(inplanes//16,inplanes,1,bias=False)
 
         self.sigmoid=nn.Sigmoid()
 
     def forward(self,x):
-        # avg_out = self.fc2(self.relu1(self.fc1(self.avg_pool(x))))
+
         avg_out = self.avg_pool(x)
         
         avg_out = self.fc1(avg_out)
@@ -91,7 +91,7 @@ class BasicBlock(nn.Module):
         out = self.conv2(out)
         out = self.bn2(out)
 
-        if self.downsample is not None:#downsample??
+        if self.downsample is not None:
             residual = self.downsample(x)
 
         out += residual
@@ -142,19 +142,16 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
-# from swin_transformer import SwinTransformer
-# from model.swin_transformer import SwinTransformer
 
-# 定义动作识别模型
 class ActionRecognitionModel(nn.Module):
     def __init__(self, input_shape, num_classes):
         super(ActionRecognitionModel, self).__init__()
-        self.patch_size = 4 # Swin-B 的 patch size
-        self.hidden_dim = 96 # Swin-B 的隐藏维度
-        self.num_heads = 8 # Swin-B 的头数
-        self.num_layers = 2 # Swin-B 的层数
-        self.expand_ratio = 4 # Swin-B 的扩张比例
-        self.dropout_rate = 0.5 # Swin-B 的 dropout rate
+        self.patch_size = 4 
+        self.hidden_dim = 96 
+        self.num_heads = 8 
+        self.num_layers = 2 
+        self.expand_ratio = 4 
+        self.dropout_rate = 0.5 
         self.embed_dim = self.hidden_dim * self.patch_size ** 2 // self.expand_ratio
 
         self.conv1 = nn.Conv3d(3, 64, kernel_size=(1, 3, 3), stride=(1, 2, 2), padding=(0, 1, 1), bias=False)
@@ -179,47 +176,12 @@ class ActionRecognitionModel(nn.Module):
         x = self.layer1(x)
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
-        # 将特征向量和前两个时间步的平均值拼接
+
         x = torch.cat([x, x[:, :2].mean(dim=1)], dim=1)
         x = self.fc(x)
         return x
 
 
-# 扩散模型 但是不太对？
-# class ActionRecognition(nn.Module):  
-#     def __init__(self, num_classes):
-#         super(ActionRecognition, self).__init__()
-        
-#         # 加载预训练的扩散模型
-#         self.diffusion_model = torch.load('diffusion_model.pth')
-        
-#         # 获取扩散模型的输出大小
-#         with torch.no_grad():
-#             sample_data = torch.randn(1, 3, 16, 224, 224)
-#             diffused_data = self.diffusion_model(sample_data)
-#             _, _, c, t, h, w = diffused_data.size()
-        
-#         # 修改全连接层的输入大小
-#         self.fc = nn.Linear(c*t*h*w, num_classes)
-        
-#         # 冻结扩散模型的参数
-#         for param in self.diffusion_model.parameters():
-#             param.requires_grad = False
-    
-#     def forward(self, x):
-#         # 通过扩散模型获取特征
-#         with torch.no_grad():
-#             x = self.diffusion_model(x)
-        
-#         # 将特征展平
-#         x = x.view(x.size(0), -1)
-        
-#         # 经过全连接层
-#         x = self.fc(x)
-        
-#         return x
-
-# ChatGPT 编写的提升性能模块 可以不加
 class ResNetBlock(nn.Module):
     def __init__(self, in_channels, out_channels, stride=(1, 1, 1)):
         super(ResNetBlock, self).__init__()
@@ -247,47 +209,30 @@ class ResNetBlock(nn.Module):
 
         return out
 
-# chatGPT 预训练模块
-import torch
-import torch.nn as nn
-import torchvision.transforms as transforms
-# from pytorch_i3d import InceptionI3d
-
-# class I3DFeatureExtractor(nn.Module):
-#     def __init__(self, num_classes):
-#         super(I3DFeatureExtractor, self).__init__()
-#         self.i3d = InceptionI3d(num_classes=num_classes, in_channels=3)
-
-#     def forward(self, x):
-#         features = self.i3d.extract_features(x)
-#         return features
-
-#https://blog.csdn.net/weixin_55073640/article/details/122552814讲的不错
-class ResNet(nn.Module):  # 核心 要画出怎么连的
+class ResNet(nn.Module):
 
     def __init__(self,
                  block,
                  layers,
-                 block_inplanes,  # 块数
-                 n_input_channels=3,  # 输入RGB三个通道 
+                 block_inplanes, 
+                 n_input_channels=3,  
                  conv1_t_size=7,
                  conv1_t_stride=1,
                  no_max_pool=False,
                  shortcut_type='B',
                  widen_factor=1.0,
                  n_classes=400):
-        super().__init__()# 构造父类
+        super().__init__()
 
-        block_inplanes = [int(x * widen_factor) for x in block_inplanes]# <list>类型填充 why?
+        block_inplanes = [int(x * widen_factor) for x in block_inplanes]
 
         self.in_planes = block_inplanes[0]
         self.no_max_pool = no_max_pool
-        # self.pretrained = I3DFeatureExtractor()
-        # self.chat_res = ResNetBlock() # 增强性能模块，可以不加
-        self.conv1 = nn.Conv3d(n_input_channels,  # 通道数
-                               self.in_planes,  # 通道数
-                               kernel_size=(conv1_t_size, 7, 7),  #卷积核
-                               stride=(conv1_t_stride, 2, 2),  # 步长
+
+        self.conv1 = nn.Conv3d(n_input_channels, 
+                               self.in_planes,  
+                               kernel_size=(conv1_t_size, 7, 7),  
+                               stride=(conv1_t_stride, 2, 2), 
                                padding=(conv1_t_size // 2, 3, 3),
                                bias=False)
         self.bn1 = nn.BatchNorm3d(self.in_planes)
@@ -310,15 +255,12 @@ class ResNet(nn.Module):  # 核心 要画出怎么连的
                                        layers[3],
                                        shortcut_type,
                                        stride=2)
-        # self.ActionRecognition=ActionRecognition(2)
-         #在卷积层最后一层加入注意力机制
         
         self.ca1=ChannelAttention(self.in_planes)
         self.sa1 = SpatialAttention()
-        # self.swinB=ActionRecognitionModel()
 
-        self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))  #三维的所以有三个参数
-        self.fc = nn.Linear(block_inplanes[3] * block.expansion, n_classes)  #全连接层
+        self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1)) 
+        self.fc = nn.Linear(block_inplanes[3] * block.expansion, n_classes) 
         self.pro = nn.Softmax(dim = 1) 
 
         for m in self.modules():
@@ -365,41 +307,31 @@ class ResNet(nn.Module):  # 核心 要画出怎么连的
 
         return nn.Sequential(*layers)
 
-    def forward(self, x):  # 最重要的 对比RESNET经典网络结构去看 (1,1,1,256,256)
+    def forward(self, x):  
 
-        x = self.conv1(x) # BUG 将numpy转化为float32，解决volume.astype(np.float32) (1,1,1,256,256)
+        x = self.conv1(x) 
         x = self.bn1(x)
         x = self.relu(x)
-
-        # === 加入预训练模块
-        # x = self.pretrained(x)
-        # === 
-        
-        # === 插入预训练模型 chatgpt编写一个
-        # x = self.chat_res(x) # 效用不大，可以不加
-        # === 
 
         if not self.no_max_pool:
             x = self.maxpool(x)
         
-        # x = self.swinB(x,2)
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
-        # x = self.ca1(x)  
-        # x = self.sa1(x)
-        x = self.avgpool(x)  #平均池化
+
+        x = self.avgpool(x) 
 
         x = x.view(x.size(0), -1)
         x = self.fc(x)
 
-        x = self.pro(x) # 归一化
+        x = self.pro(x) 
         
         return x
 
 
-def generate_model(model_depth, **kwargs):#向函数传递 可变参数
+def generate_model(model_depth, **kwargs):
     assert model_depth in [10, 18, 34, 50, 101, 152, 200]
 
     if model_depth == 10:
