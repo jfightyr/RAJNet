@@ -1,4 +1,4 @@
-# Parkinson’s Severity Diagnosis Explainable Model Based on 3D Multi-Head Attention Residual Network
+# A Novel End-to-end 3D-Residual and Attention Enhancement Joint Few-Shot Learning Model for Huntington Diagnosis 
 
 <hr />
 
