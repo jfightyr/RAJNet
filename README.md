@@ -19,25 +19,6 @@ Training and Testing instructions for RAJNet. Here is a summary table containing
 | [TrainNavigation](TrainNavigation.md) | [TestNavigation](TestNavigation.md) |
 
 
-## Results
-
-In our experiments, first, we test several different models on the same dataset. Second, we also performed binary classification tests on patients of different periods and compared their results. Third, we conducted a module ablation experiment for RAJNet.
-
-<details>
-<summary><strong>Classification Prediction Results</strong> (click to expand) </summary>
-
-
- <center><img src="figures/img1.png" style="zoom: 33%;" />
-</details>
-
-
-<details>
-<summary><strong>Ablation Experiment Results</strong> (click to expand) </summary>
-
-
- <center><img src="figures/img2.png" style="zoom: 50%;" />
-</details>
-
 ## Contact
 
 Should you have any question, please contact jiehuihuang1107@163.com
